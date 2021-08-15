@@ -493,9 +493,20 @@ RegisterPage::doUIA(const mtx::user_interactive::Unauthorized &unauthorized)
                                         &ok);
 
                 if (ok) {
-                        emit registrationWithAuth(mtx::user_interactive::Auth{
-                          session,
-                          mtx::user_interactive::auth::RegistrationToken{token.toStdString()}});
+                        http::client()->registration_token_validity(
+                          token.toStdString(),
+                          [this](const mtx::responses::RegistrationTokenValidity &res,
+                                 mtx::http::RequestErr err) {
+                                  if (!err) {
+                                          if (res.valid) {
+                                                  showError("token is valid");
+                                          } else {
+                                                  showError("token is invalid");
+                                          }
+                                  } else {
+                                          showError("error");
+                                  }
+                          });
                 } else {
                         emit errorOccurred();
                 }
